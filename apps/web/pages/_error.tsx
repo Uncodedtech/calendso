@@ -2,13 +2,15 @@
  * Typescript class based component for custom-error
  * @link https://nextjs.org/docs/advanced-features/custom-error-page
  */
-import { NextPage, NextPageContext } from "next";
-import NextError, { ErrorProps } from "next/error";
+import type { NextPage, NextPageContext } from "next";
+import type { ErrorProps } from "next/error";
+import NextError from "next/error";
 import React from "react";
 
-import { HttpError } from "@lib/core/http/error";
-import { getErrorFromUnknown } from "@lib/errors";
-import logger from "@lib/logger";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { redactError } from "@calcom/lib/redactError";
 
 import { ErrorPage } from "@components/error/error-page";
 
@@ -24,7 +26,7 @@ type AugmentedNextPageContext = Omit<NextPageContext, "err"> & {
   err: AugmentedError;
 };
 
-const log = logger.getChildLogger({ prefix: ["[error]"] });
+const log = logger.getSubLogger({ prefix: ["[error]"] });
 
 const CustomError: NextPage<CustomErrorProps> = (props) => {
   const { statusCode, err, message, hasGetInitialPropsRun } = props;
@@ -33,7 +35,7 @@ const CustomError: NextPage<CustomErrorProps> = (props) => {
     // getInitialProps is not called in case of
     // https://github.com/vercel/next.js/issues/8592. As a workaround, we pass
     // err via _app.tsx so it can be captured
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const e = getErrorFromUnknown(err);
     // can be captured here
     // e.g. Sentry.captureException(e);
@@ -45,7 +47,8 @@ const CustomError: NextPage<CustomErrorProps> = (props) => {
  * Partially adapted from the example in
  * https://github.com/vercel/next.js/tree/canary/examples/with-sentry
  */
-CustomError.getInitialProps = async ({ res, err, asPath }: AugmentedNextPageContext) => {
+CustomError.getInitialProps = async (ctx: AugmentedNextPageContext) => {
+  const { res, err, asPath } = ctx;
   const errorInitialProps = (await NextError.getInitialProps({
     res,
     err,
@@ -57,10 +60,17 @@ CustomError.getInitialProps = async ({ res, err, asPath }: AugmentedNextPageCont
 
   // If a HttpError message, let's override defaults
   if (err instanceof HttpError) {
+    const redactedError = redactError(err);
     errorInitialProps.statusCode = err.statusCode;
-    errorInitialProps.title = err.name;
-    errorInitialProps.message = err.message;
-    errorInitialProps.err = err;
+    errorInitialProps.title = redactedError.name;
+    errorInitialProps.message = redactedError.message;
+    errorInitialProps.err = {
+      ...redactedError,
+      url: err.url,
+      statusCode: err.statusCode,
+      cause: err.cause,
+      method: err.method,
+    };
   }
 
   if (res) {
