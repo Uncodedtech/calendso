@@ -1,17 +1,20 @@
-import React, { SyntheticEvent, useState } from "react";
+import type { SyntheticEvent } from "react";
+import { useState } from "react";
 
-import { ErrorCode } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-
-import Button from "@components/ui/Button";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button, showToast } from "@calcom/ui";
 
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
+  // hold display until the locale is loaded
+  if (!isLocaleReady) {
+    return null;
+  }
 
   const errorMessages: { [key: string]: string } = {
     [ErrorCode.IncorrectPassword]: t("current_incorrect_password"),
@@ -56,14 +59,14 @@ const ChangePasswordSection = () => {
 
   return (
     <>
-      <div className="mt-6">
-        <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("change_password")}</h2>
-      </div>
-      <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
-        <div className="py-6 lg:pb-8">
-          <div className="flex">
-            <div className="w-1/2 ltr:mr-2 rtl:ml-2">
-              <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
+      <form className="divide-subtle divide-y lg:col-span-9" onSubmit={changePasswordHandler}>
+        <div className="py-6 lg:pb-5">
+          <div className="my-3">
+            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">{t("change_password")}</h2>
+          </div>
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0">
+            <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-1/2">
+              <label htmlFor="current_password" className="text-default block text-sm font-medium">
                 {t("current_password")}
               </label>
               <div className="mt-1">
@@ -74,13 +77,13 @@ const ChangePasswordSection = () => {
                   name="current_password"
                   id="current_password"
                   required
-                  className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+                  className="border-default block w-full rounded-sm text-sm"
                   placeholder={t("your_old_password")}
                 />
               </div>
             </div>
-            <div className="ml-2 w-1/2">
-              <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">
+            <div className="w-full sm:w-1/2">
+              <label htmlFor="new_password" className="text-default block text-sm font-medium">
                 {t("new_password")}
               </label>
               <div className="mt-1">
@@ -91,17 +94,18 @@ const ChangePasswordSection = () => {
                   value={newPassword}
                   required
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
-                  className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+                  className="border-default block w-full rounded-sm text-sm"
                   placeholder={t("super_secure_new_password")}
                 />
               </div>
             </div>
           </div>
           {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
-          <div className="flex justify-end py-8">
-            <Button type="submit">{t("save")}</Button>
+          <div className="flex py-8 sm:justify-end">
+            <Button color="secondary" type="submit">
+              {t("save")}
+            </Button>
           </div>
-          <hr className="mt-4" />
         </div>
       </form>
     </>

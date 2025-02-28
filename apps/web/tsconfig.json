@@ -3,15 +3,36 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "~/*": ["modules/*"],
       "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
-      "@ee/*": ["ee/*"],
-      "@prisma/client/*": ["@calcom/prisma/client/*"]
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/repository/*": ["@calcom/lib/server/repository/*"],
+      "@calcom/ui/*": ["../../packages/ui/components/*"]
     },
-    "typeRoots": ["./types"],
-    "types": ["@types/jest"]
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strictNullChecks": true,
+    "experimentalDecorators": true
   },
-  "include": ["next-env.d.ts", "@types/*.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    /* Find a way to not require this - App files don't belong here. */
+    "../../packages/app-store/routing-forms/env.d.ts",
+    "next-env.d.ts",
+    "../../packages/trpc/types/router.d.ts",
+    "../../packages/types/*.d.ts",
+    "../../packages/types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "../../packages/features/bookings/lib/getBookingInfo.ts",
+    "../../packages/features/bookings/lib/getUserBooking.ts",
+    "../../packages/features/Segment.tsx"
+  ],
+  "exclude": ["node_modules", ".next"]
 }

@@ -1,14 +1,12 @@
-import { expect, it } from "@jest/globals";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import MockDate from "mockdate";
+import type { Availability } from "@prisma/client";
+import { expect, it, beforeAll, vi } from "vitest";
 
-import { Availability } from "@calcom/prisma/client";
+import dayjs from "@calcom/dayjs";
+import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
-import { getAvailabilityFromSchedule } from "@lib/availability";
-
-dayjs.extend(customParseFormat);
-MockDate.set("2021-06-20T11:59:59Z");
+beforeAll(() => {
+  vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+});
 
 //parse "hh:mm-hh:mm" into <Availability> object
 const parseWorkingHours = (workingHours: string) => {
